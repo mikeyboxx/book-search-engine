@@ -1,10 +1,13 @@
 const { AuthenticationError } = require('apollo-server-express');
-const { User, Book } = require('../models');
+const { User} = require('../models');
 const { signToken, verifyToken } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-   
+    users: async (parent, { token }) => {
+      return User.find({});
+    },
+
     me: async (parent, { token }) => {
       if (!token) {
         throw new AuthenticationError('Invalid token');
@@ -44,17 +47,36 @@ const resolvers = {
     },
 
     
-    saveBook: async (parent, { token, book }) => {
+    saveBook: async (parent, { input }) => {
+      const {
+        token, 
+        bookId, 
+        authors, 
+        description, 
+        title, 
+        image, 
+        link
+      } = input;
+
       if (!token) {
         throw new AuthenticationError('Invalid token');
       }
       
-      const {username} = verifyToken(token);
+      const book = {
+        bookId,
+        authors,
+        description,
+        title,
+        image,
+        link
+      };
 
+      const {username} = verifyToken(token);
+      
       return User.findOneAndUpdate(
         { username },
         {
-          $addToSet: { savedBooks: { book} },
+          $addToSet: { savedBooks: { ...book} },
         },
         {
           new: true,
@@ -63,7 +85,6 @@ const resolvers = {
       );
     },
 
-    
     removeBook: async (parent, { token, bookId }) => {
       if (!token) {
         throw new AuthenticationError('Invalid token');
