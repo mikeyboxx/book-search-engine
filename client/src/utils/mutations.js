@@ -48,6 +48,14 @@ export const REMOVE_BOOK = gql`
       email
       password
       bookCount
+      savedBooks {
+        bookId
+        authors
+        description
+        title
+        image
+        link
+      }
     }
   }
 `;

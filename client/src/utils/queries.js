@@ -8,6 +8,14 @@ export const QUERY_ME = gql`
       email
       password
       bookCount
+      savedBooks {
+        bookId
+        authors
+        description
+        title
+        image
+        link
+      }
     }
   }
 `;
