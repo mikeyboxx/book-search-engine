@@ -9,11 +9,12 @@ const resolvers = {
         throw new AuthenticationError('You need to be logged in!');
       } 
 
-      return User.findOne({ _id: context.user._id });
+      const user = await User.findOne({ _id: context.user._id });
+      return user;
     },
 
     users: async () => {
-      return User.find({});
+      return await User.find({});
     },
   },
   
@@ -50,7 +51,7 @@ const resolvers = {
         throw new AuthenticationError('You need to be logged in!');
       }
 
-      return User.findOneAndUpdate(
+      return await User.findOneAndUpdate(
         { _id: context.user._id },
         {
           $addToSet: { savedBooks: { ...input} },
@@ -67,7 +68,7 @@ const resolvers = {
         throw new AuthenticationError('You need to be logged in!');
       }
       
-      return User.findOneAndUpdate(
+      return await User.findOneAndUpdate(
         { _id: context.user._id },
         { $pull: { savedBooks: {bookId} } },
         { new: true }
