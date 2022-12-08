@@ -36,9 +36,6 @@ export const SAVE_BOOK = gql`
       email
       password
       bookCount
-      savedBooks {
-        
-      }
     }
   }
 `;
