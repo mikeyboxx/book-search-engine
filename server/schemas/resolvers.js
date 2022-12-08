@@ -1,21 +1,19 @@
 const { AuthenticationError } = require('apollo-server-express');
 const { User} = require('../models');
-const { signToken, verifyToken } = require('../utils/auth');
+const { signToken} = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    users: async (parent, { token }) => {
-      return User.find({});
+    me: async (parent, args, context) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
+      } 
+
+      return User.findOne({ _id: context.user._id });
     },
 
-    me: async (parent, { token }) => {
-      if (!token) {
-        throw new AuthenticationError('Invalid token');
-      }
-      
-      const {username} = verifyToken(token);
-
-      return User.findOne({ username });
+    users: async () => {
+      return User.find({});
     },
   },
   
@@ -47,36 +45,15 @@ const resolvers = {
     },
 
     
-    saveBook: async (parent, { input }) => {
-      const {
-        token, 
-        bookId, 
-        authors, 
-        description, 
-        title, 
-        image, 
-        link
-      } = input;
-
-      if (!token) {
-        throw new AuthenticationError('Invalid token');
+    saveBook: async (parent, { input }, context) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
       }
-      
-      const book = {
-        bookId,
-        authors,
-        description,
-        title,
-        image,
-        link
-      };
 
-      const {username} = verifyToken(token);
-      
       return User.findOneAndUpdate(
-        { username },
+        { _id: context.user._id },
         {
-          $addToSet: { savedBooks: { ...book} },
+          $addToSet: { savedBooks: { ...input} },
         },
         {
           new: true,
@@ -85,16 +62,14 @@ const resolvers = {
       );
     },
 
-    removeBook: async (parent, { token, bookId }) => {
-      if (!token) {
-        throw new AuthenticationError('Invalid token');
+    removeBook: async (parent, { bookId }, context) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
       }
       
-      const {username} = verifyToken(token);
-
       return User.findOneAndUpdate(
-        { username },
-        { $pull: { savedBooks: { bookId } } },
+        { _id: context.user._id },
+        { $pull: { savedBooks: {bookId} } },
         { new: true }
       );
     },
